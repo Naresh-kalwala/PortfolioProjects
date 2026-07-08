@@ -11,6 +11,7 @@ output size or the response gets cut off mid-JSON.
 
 from __future__ import annotations
 
+import asyncio
 import json
 from abc import ABC, abstractmethod
 from typing import Any
@@ -131,8 +132,16 @@ class GeminiProvider(AIProvider):
         if json_mode:
             generation_config["response_mime_type"] = "application/json"
 
-        response = await model.generate_content_async(
-            prompt, generation_config=generation_config
+        # Deliberately the sync `generate_content` (run in a thread) rather
+        # than `generate_content_async`: the async client caches a grpc.aio
+        # channel bound to whichever event loop first created it, and every
+        # Celery task here runs its AI calls via a fresh `asyncio.run()` —
+        # so a cached async client from a previous task's (now-closed) loop
+        # raises "RuntimeError: Event loop is closed" on the next call. The
+        # sync client has no event-loop affinity, so it survives being
+        # reused across many independent `asyncio.run()` invocations.
+        response = await asyncio.to_thread(
+            model.generate_content, prompt, generation_config=generation_config
         )
         return response.text
 
