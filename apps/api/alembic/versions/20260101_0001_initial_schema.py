@@ -13,31 +13,43 @@ down_revision = None
 branch_labels = None
 depends_on = None
 
+
+# create_type=False on every enum: types are created/dropped explicitly in
+# upgrade()/downgrade() below, so the columns that reference them (via
+# op.create_table) must not also auto-create/drop the same Postgres type —
+# that double-create raised asyncpg.DuplicateObjectError.
 job_source_enum = postgresql.ENUM(
     "greenhouse", "lever", "ashby", "smartrecruiters", "workday",
     "microsoft_careers", "google_careers", "company_page",
     "linkedin", "indeed", "dice", "ziprecruiter", "wellfound",
-    name="jobsourceplatform",
+    name="jobsourceplatform", create_type=False,
 )
-workplace_type_enum = postgresql.ENUM("remote", "hybrid", "onsite", name="workplacetype")
+workplace_type_enum = postgresql.ENUM(
+    "remote", "hybrid", "onsite", name="workplacetype", create_type=False
+)
 employment_type_enum = postgresql.ENUM(
-    "contract", "full_time", "part_time", "internship", name="employmenttype"
+    "contract", "full_time", "part_time", "internship",
+    name="employmenttype", create_type=False,
 )
-experience_level_enum = postgresql.ENUM("entry", "mid", "senior", name="experiencelevel")
+experience_level_enum = postgresql.ENUM(
+    "entry", "mid", "senior", name="experiencelevel", create_type=False
+)
 application_status_enum = postgresql.ENUM(
     "new", "summarized", "resume_generated", "cover_letter_generated",
     "ready_to_apply", "auto_applying", "manual_action_required",
     "submitted", "interview", "offer", "rejected", "withdrawn",
-    name="applicationstatus",
+    name="applicationstatus", create_type=False,
 )
-application_method_enum = postgresql.ENUM("auto", "manual_assist", name="applicationmethod")
+application_method_enum = postgresql.ENUM(
+    "auto", "manual_assist", name="applicationmethod", create_type=False
+)
 notification_channel_enum = postgresql.ENUM(
-    "email", "whatsapp", "browser_push", name="notificationchannel"
+    "email", "whatsapp", "browser_push", name="notificationchannel", create_type=False
 )
 notification_type_enum = postgresql.ENUM(
     "high_match_job", "resume_ready", "cover_letter_ready",
     "application_submitted", "manual_action_required", "interview_detected",
-    name="notificationtype",
+    name="notificationtype", create_type=False,
 )
 
 

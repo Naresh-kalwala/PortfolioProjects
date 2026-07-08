@@ -3,11 +3,11 @@ from __future__ import annotations
 import uuid
 from typing import TYPE_CHECKING
 
-from sqlalchemy import DateTime, Enum, ForeignKey, String, Text
+from sqlalchemy import DateTime, ForeignKey, String, Text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from app.db.base import Base, TimestampMixin, UUIDMixin
+from app.db.base import Base, TimestampMixin, UUIDMixin, str_enum
 from app.models.enums import NotificationChannel, NotificationType
 
 if TYPE_CHECKING:
@@ -20,8 +20,8 @@ class Notification(UUIDMixin, TimestampMixin, Base):
     user_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), ForeignKey("user_profiles.id", ondelete="CASCADE"), index=True
     )
-    type: Mapped[NotificationType] = mapped_column(Enum(NotificationType), index=True)
-    channel: Mapped[NotificationChannel] = mapped_column(Enum(NotificationChannel))
+    type: Mapped[NotificationType] = mapped_column(str_enum(NotificationType), index=True)
+    channel: Mapped[NotificationChannel] = mapped_column(str_enum(NotificationChannel))
     title: Mapped[str] = mapped_column(String(500))
     body: Mapped[str] = mapped_column(Text)
     related_job_id: Mapped[uuid.UUID | None] = mapped_column(

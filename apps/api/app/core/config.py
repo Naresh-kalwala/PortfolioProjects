@@ -31,8 +31,9 @@ class Settings(BaseSettings):
     anthropic_api_key: str = ""
     gemini_api_key: str = ""
 
-    # Storage
-    storage_backend: Literal["s3", "cloudinary"] = "s3"
+    # Storage. "local" writes to disk under ./media — zero-config for
+    # development only; use "s3" or "cloudinary" in production.
+    storage_backend: Literal["s3", "cloudinary", "local"] = "local"
     aws_access_key_id: str = ""
     aws_secret_access_key: str = ""
     aws_region: str = "us-east-1"
