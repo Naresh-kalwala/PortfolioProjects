@@ -1,6 +1,6 @@
 "use client";
 
-import { FileUp, UploadCloud } from "lucide-react";
+import { CheckCircle2, FileUp, UploadCloud } from "lucide-react";
 import { useRef, useState } from "react";
 import { useSWRConfig } from "swr";
 
@@ -19,6 +19,7 @@ export function ResumeUpload() {
   const { mutate } = useSWRConfig();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
+  const [justUploaded, setJustUploaded] = useState(false);
 
   async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -31,7 +32,9 @@ export function ResumeUpload() {
     setUploading(true);
     try {
       await post("/resumes/master", formData);
-      mutate("/resumes/master");
+      await mutate("/resumes/master");
+      setJustUploaded(true);
+      setTimeout(() => setJustUploaded(false), 4000);
     } finally {
       setUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = "";
@@ -47,6 +50,13 @@ export function ResumeUpload() {
         The single source of truth every tailored resume is generated from. The AI only rewords
         and reorders this content — it never invents experience beyond what's here.
       </p>
+
+      {justUploaded && (
+        <div className="mt-3 flex items-center gap-2 rounded-md bg-success/10 p-3 text-sm text-success">
+          <CheckCircle2 size={14} />
+          Resume uploaded successfully
+        </div>
+      )}
 
       {primary && (
         <div className="mt-3 flex items-center gap-2 rounded-md bg-muted p-3 text-sm">
