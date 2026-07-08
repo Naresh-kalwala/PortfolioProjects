@@ -1,16 +1,20 @@
-FROM python:3.12-slim
+# Microsoft's official Playwright image, not a bare python:slim + hand-rolled
+# apt-get list: it ships every system library Chromium (and WeasyPrint's
+# Pango/cairo/gdk-pixbuf stack) needs, pre-tested for this exact Playwright
+# version. Building on a floating "python:slim" tag repeatedly broke here as
+# Debian renamed/dropped packages between releases (e.g. gdk-pixbuf,
+# ttf-unifont) — pin the version to match the `playwright` pin in
+# requirements.txt whenever that changes.
+FROM mcr.microsoft.com/playwright/python:v1.47.0-jammy
 
 WORKDIR /app
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential libpq-dev \
-    libpango-1.0-0 libpangocairo-1.0-0 libgdk-pixbuf-2.0-0 libffi-dev \
-    shared-mime-info fonts-liberation \
+    libpq-dev \
     && rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt \
-    && playwright install --with-deps chromium
+RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
