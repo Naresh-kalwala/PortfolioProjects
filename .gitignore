@@ -1,0 +1,46 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Node
+node_modules/
+.next/
+out/
+dist/
+build/
+.turbo/
+*.tsbuildinfo
+
+# Env
+.env
+.env.*
+!.env.example
+
+# Editor / OS
+.vscode/
+.idea/
+.DS_Store
+
+# Logs
+*.log
+npm-debug.log*
+
+# Generated documents
+apps/api/generated/
+apps/api/media/
+
+# Docker
+*.pid
+
+# Alembic
+apps/api/alembic/versions/__pycache__/
+
+# Playwright
+apps/api/playwright-report/
+apps/api/test-results/
