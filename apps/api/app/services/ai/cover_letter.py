@@ -49,4 +49,4 @@ async def generate_cover_letter(
         job_title=job_title,
         job_description=job_description,
     )
-    return (await provider.complete(prompt, system=_SYSTEM_PROMPT, max_tokens=1200)).strip()
+    return (await provider.complete(prompt, system=_SYSTEM_PROMPT, max_tokens=3000)).strip()

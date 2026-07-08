@@ -70,7 +70,7 @@ async def tailor_resume(
         company=company,
         job_description=job_description,
     )
-    result = await provider.complete_json(prompt, system=_SYSTEM_PROMPT, max_tokens=3000)
+    result = await provider.complete_json(prompt, system=_SYSTEM_PROMPT, max_tokens=6000)
     result.setdefault("keywords_added", [])
     result.setdefault("missing_skills", [])
     return result

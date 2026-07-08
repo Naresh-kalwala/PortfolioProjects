@@ -54,7 +54,7 @@ async def compute_match_score(
         preferred_qualifications="\n".join(f"- {p}" for p in preferred_qualifications)
         or "Not specified",
     )
-    result = await provider.complete_json(prompt, system=_SYSTEM_PROMPT, max_tokens=1500)
+    result = await provider.complete_json(prompt, system=_SYSTEM_PROMPT, max_tokens=4000)
     result.setdefault("missing_skills", [])
     result.setdefault("resume_improvement_suggestions", [])
     return result

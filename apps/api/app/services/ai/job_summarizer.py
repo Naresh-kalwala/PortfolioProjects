@@ -24,4 +24,4 @@ async def summarize_job(job_title: str, company: str, job_description: str) -> s
     prompt = _SUMMARY_TEMPLATE.format(
         job_title=job_title, company=company, job_description=job_description
     )
-    return (await provider.complete(prompt, system=_SYSTEM_PROMPT, max_tokens=400)).strip()
+    return (await provider.complete(prompt, system=_SYSTEM_PROMPT, max_tokens=2000)).strip()
