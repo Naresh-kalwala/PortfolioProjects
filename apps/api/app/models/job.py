@@ -35,7 +35,10 @@ class Job(UUIDMixin, TimestampMixin, Base):
     )
 
     source: Mapped[JobSourcePlatform] = mapped_column(str_enum(JobSourcePlatform), index=True)
-    external_id: Mapped[str] = mapped_column(String(255), index=True)
+    # Wide enough for a raw URL: manual-paste sources (LinkedIn, Indeed,
+    # ...) use the posting's full URL as external_id, and those routinely
+    # exceed 255 characters once tracking query params are included.
+    external_id: Mapped[str] = mapped_column(String(2048), index=True)
     dedupe_hash: Mapped[str] = mapped_column(String(64), index=True)
 
     title: Mapped[str] = mapped_column(String(500))
