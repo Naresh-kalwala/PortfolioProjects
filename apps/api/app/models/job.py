@@ -3,11 +3,11 @@ from __future__ import annotations
 import uuid
 from typing import TYPE_CHECKING
 
-from sqlalchemy import JSON, DateTime, Enum, ForeignKey, String, Text, UniqueConstraint
+from sqlalchemy import JSON, DateTime, ForeignKey, String, Text, UniqueConstraint
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from app.db.base import Base, TimestampMixin, UUIDMixin
+from app.db.base import Base, TimestampMixin, UUIDMixin, str_enum
 from app.models.enums import (
     ApplicationMethod,
     ApplicationStatus,
@@ -34,7 +34,7 @@ class Job(UUIDMixin, TimestampMixin, Base):
         UniqueConstraint("source", "external_id", name="uq_job_source_external_id"),
     )
 
-    source: Mapped[JobSourcePlatform] = mapped_column(Enum(JobSourcePlatform), index=True)
+    source: Mapped[JobSourcePlatform] = mapped_column(str_enum(JobSourcePlatform), index=True)
     external_id: Mapped[str] = mapped_column(String(255), index=True)
     dedupe_hash: Mapped[str] = mapped_column(String(64), index=True)
 
@@ -43,9 +43,9 @@ class Job(UUIDMixin, TimestampMixin, Base):
     company_logo_url: Mapped[str | None] = mapped_column(String(1000), nullable=True)
     location: Mapped[str | None] = mapped_column(String(255), nullable=True)
 
-    workplace_type: Mapped[WorkplaceType | None] = mapped_column(Enum(WorkplaceType), nullable=True)
-    employment_type: Mapped[EmploymentType | None] = mapped_column(Enum(EmploymentType), nullable=True)
-    experience_level: Mapped[ExperienceLevel | None] = mapped_column(Enum(ExperienceLevel), nullable=True)
+    workplace_type: Mapped[WorkplaceType | None] = mapped_column(str_enum(WorkplaceType), nullable=True)
+    employment_type: Mapped[EmploymentType | None] = mapped_column(str_enum(EmploymentType), nullable=True)
+    experience_level: Mapped[ExperienceLevel | None] = mapped_column(str_enum(ExperienceLevel), nullable=True)
     is_stem_opt_friendly: Mapped[bool | None] = mapped_column(nullable=True)
     is_us_based: Mapped[bool] = mapped_column(default=True)
 
@@ -93,10 +93,10 @@ class UserJob(UUIDMixin, TimestampMixin, Base):
     resume_improvement_suggestions: Mapped[list] = mapped_column(JSON, default=list)
 
     status: Mapped[ApplicationStatus] = mapped_column(
-        Enum(ApplicationStatus), default=ApplicationStatus.NEW, index=True
+        str_enum(ApplicationStatus), default=ApplicationStatus.NEW, index=True
     )
     application_method: Mapped[ApplicationMethod | None] = mapped_column(
-        Enum(ApplicationMethod), nullable=True
+        str_enum(ApplicationMethod), nullable=True
     )
     manual_action_reason: Mapped[str | None] = mapped_column(Text, nullable=True)
     manual_action_steps: Mapped[list] = mapped_column(JSON, default=list)

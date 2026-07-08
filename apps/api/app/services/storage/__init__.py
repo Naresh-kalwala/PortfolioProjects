@@ -11,6 +11,11 @@ def get_storage_backend() -> StorageBackend:
 
         return CloudinaryStorageBackend()
 
+    if settings.storage_backend == "local":
+        from app.services.storage.local_backend import LocalStorageBackend
+
+        return LocalStorageBackend()
+
     from app.services.storage.s3_backend import S3StorageBackend
 
     return S3StorageBackend()
