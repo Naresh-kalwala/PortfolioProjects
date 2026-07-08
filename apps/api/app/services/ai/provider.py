@@ -128,21 +128,39 @@ class GeminiProvider(AIProvider):
         model = self._genai.GenerativeModel(
             self._model_name, system_instruction=system or None
         )
-        generation_config = {"max_output_tokens": max_tokens, "temperature": 0.4}
-        if json_mode:
-            generation_config["response_mime_type"] = "application/json"
 
-        # Deliberately the sync `generate_content` (run in a thread) rather
-        # than `generate_content_async`: the async client caches a grpc.aio
-        # channel bound to whichever event loop first created it, and every
-        # Celery task here runs its AI calls via a fresh `asyncio.run()` —
-        # so a cached async client from a previous task's (now-closed) loop
-        # raises "RuntimeError: Event loop is closed" on the next call. The
-        # sync client has no event-loop affinity, so it survives being
-        # reused across many independent `asyncio.run()` invocations.
-        response = await asyncio.to_thread(
-            model.generate_content, prompt, generation_config=generation_config
-        )
+        # gemini-2.5-*'s internal "thinking" step consumes part of
+        # max_output_tokens before any visible output, and how much it uses
+        # scales with the input's length/complexity — no single fixed
+        # budget is safe for every prompt. Detect truncation via
+        # finish_reason and escalate the budget rather than silently
+        # returning a cut-off response that fails JSON parsing downstream.
+        current_max_tokens = max_tokens
+        response = None
+        for _ in range(3):
+            generation_config = {"max_output_tokens": current_max_tokens, "temperature": 0.4}
+            if json_mode:
+                generation_config["response_mime_type"] = "application/json"
+
+            # Deliberately the sync `generate_content` (run in a thread)
+            # rather than `generate_content_async`: the async client caches
+            # a grpc.aio channel bound to whichever event loop first created
+            # it, and every Celery task here runs its AI calls via a fresh
+            # `asyncio.run()` — so a cached async client from a previous
+            # task's (now-closed) loop raises "RuntimeError: Event loop is
+            # closed" on the next call. The sync client has no event-loop
+            # affinity, so it survives being reused across many independent
+            # `asyncio.run()` invocations.
+            response = await asyncio.to_thread(
+                model.generate_content, prompt, generation_config=generation_config
+            )
+
+            finish_reason = response.candidates[0].finish_reason if response.candidates else None
+            if finish_reason is None or finish_reason.name != "MAX_TOKENS":
+                return response.text
+
+            current_max_tokens *= 3
+
         return response.text
 
 
