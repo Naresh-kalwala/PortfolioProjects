@@ -40,7 +40,7 @@ Return only the answer text, no markdown."""
 async def generate_interview_questions(job_title: str, job_description: str) -> dict:
     provider = get_ai_provider()
     prompt = _QUESTIONS_TEMPLATE.format(job_title=job_title, job_description=job_description)
-    return await provider.complete_json(prompt, system=_QUESTIONS_SYSTEM, max_tokens=1200)
+    return await provider.complete_json(prompt, system=_QUESTIONS_SYSTEM, max_tokens=3000)
 
 
 async def generate_interview_answer(master_resume_text: str, question: str) -> str:
@@ -48,4 +48,4 @@ async def generate_interview_answer(master_resume_text: str, question: str) -> s
     prompt = _ANSWERS_TEMPLATE.format(
         master_resume_text=master_resume_text, question=question
     )
-    return (await provider.complete(prompt, system=_ANSWERS_SYSTEM, max_tokens=600)).strip()
+    return (await provider.complete(prompt, system=_ANSWERS_SYSTEM, max_tokens=2000)).strip()

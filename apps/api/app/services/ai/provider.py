@@ -1,6 +1,12 @@
 """Thin abstraction over multiple LLM providers so the rest of the app never
 imports openai/anthropic/google.generativeai directly. Swap providers with
 the AI_PROVIDER env var without touching any calling code.
+
+Note on `max_tokens` for Gemini: reasoning models like gemini-2.5-* spend
+part of the token budget on internal "thinking" before the visible output,
+and this SDK version has no way to disable or cap that separately — so
+every caller's `max_tokens` needs enough headroom above the actual expected
+output size or the response gets cut off mid-JSON.
 """
 
 from __future__ import annotations
@@ -104,7 +110,11 @@ class GeminiProvider(AIProvider):
 
         genai.configure(api_key=settings.gemini_api_key)
         self._genai = genai
-        self._model_name = "gemini-1.5-pro"
+        # "-flash" (not "-pro") because Google's free tier grants zero
+        # quota to Pro models — Flash is the model new users can actually
+        # call without a paid plan, and is still strong for this app's
+        # summarization/tailoring/scoring tasks.
+        self._model_name = "gemini-2.5-flash"
 
     @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=2, max=20))
     async def complete(

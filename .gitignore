@@ -38,6 +38,9 @@ apps/api/media/
 # Docker
 *.pid
 
+# Celery beat runtime state
+celerybeat-schedule.db
+
 # Alembic
 apps/api/alembic/versions/__pycache__/
 
