@@ -16,7 +16,8 @@ import json
 from abc import ABC, abstractmethod
 from typing import Any
 
-from tenacity import retry, stop_after_attempt, wait_exponential
+from google.api_core.exceptions import ResourceExhausted
+from tenacity import retry, retry_if_not_exception_type, stop_after_attempt, wait_exponential
 
 from app.core.config import settings
 
@@ -117,7 +118,16 @@ class GeminiProvider(AIProvider):
         # summarization/tailoring/scoring tasks.
         self._model_name = "gemini-2.5-flash"
 
-    @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=2, max=20))
+    # A quota error (ResourceExhausted / 429) is a daily cap on the free
+    # tier — it will not clear up in the 2-20s this decorator would wait,
+    # so retrying it is pure waste: 3x the failed calls and up to a minute
+    # of delay for a guaranteed-identical failure. Every other error
+    # (transient network blips, etc.) still gets the normal retry.
+    @retry(
+        stop=stop_after_attempt(3),
+        wait=wait_exponential(multiplier=1, min=2, max=20),
+        retry=retry_if_not_exception_type(ResourceExhausted),
+    )
     async def complete(
         self,
         prompt: str,
