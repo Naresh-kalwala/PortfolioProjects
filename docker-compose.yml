@@ -35,6 +35,12 @@ services:
       dockerfile: Dockerfile
     restart: unless-stopped
     env_file: .env
+    environment:
+      # Bind-mounted source edited from the Windows host (vs. a Linux
+      # editor/container) often never fires the inotify events --reload
+      # relies on, so uvicorn silently never notices file changes; polling
+      # instead trades a little CPU for actually picking up edits.
+      WATCHFILES_FORCE_POLLING: "true"
     depends_on:
       postgres:
         condition: service_healthy
@@ -82,6 +88,13 @@ services:
       dockerfile: Dockerfile
     restart: unless-stopped
     env_file: .env
+    environment:
+      # Same reasoning as the api service's WATCHFILES_FORCE_POLLING: a
+      # Windows-host bind mount often doesn't deliver the native filesystem
+      # events Next.js/webpack's watcher expects, so edits silently never
+      # trigger a recompile without polling turned on.
+      WATCHPACK_POLLING: "true"
+      CHOKIDAR_USEPOLLING: "true"
     depends_on:
       - api
     ports:
