@@ -43,5 +43,6 @@ export function createApiClient(token: string | null) {
       request<T>(path, token, { method: "PATCH", body: JSON.stringify(body ?? {}) }),
     put: <T>(path: string, body?: unknown) =>
       request<T>(path, token, { method: "PUT", body: JSON.stringify(body ?? {}) }),
+    delete: <T>(path: string) => request<T>(path, token, { method: "DELETE" }),
   };
 }

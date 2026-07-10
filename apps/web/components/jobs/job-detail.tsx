@@ -1,6 +1,7 @@
 "use client";
 
-import { CheckCircle2, Download, ExternalLink, FileText, Mail } from "lucide-react";
+import { CheckCircle2, Download, ExternalLink, FileText, Mail, Trash2 } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import { MatchBadge } from "@/components/jobs/match-badge";
@@ -11,8 +12,10 @@ import type { UserJob } from "@/types";
 
 export function JobDetail({ userJobId }: { userJobId: string }) {
   const { data: userJob, mutate } = useApiGet<UserJob>(`/jobs/${userJobId}`);
-  const { get, post } = useApiMutations();
+  const { get, post, remove } = useApiMutations();
   const [resuming, setResuming] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const router = useRouter();
 
   if (!userJob) {
     return <div className="h-96 animate-pulse rounded-lg border border-border bg-muted" />;
@@ -40,6 +43,17 @@ export function JobDetail({ userJobId }: { userJobId: string }) {
     }
   }
 
+  async function handleDelete() {
+    if (!window.confirm("Remove this job from your dashboard? This can't be undone.")) return;
+    setDeleting(true);
+    try {
+      await remove(`/jobs/${userJobId}`);
+      router.push("/jobs");
+    } finally {
+      setDeleting(false);
+    }
+  }
+
   return (
     <div className="mx-auto max-w-4xl space-y-5">
       <div className="rounded-lg border border-border bg-card p-5 shadow-soft">
@@ -53,6 +67,14 @@ export function JobDetail({ userJobId }: { userJobId: string }) {
           <div className="flex items-center gap-2">
             <MatchBadge score={userJob.match_score} />
             <StatusBadge status={userJob.status} />
+            <button
+              onClick={handleDelete}
+              disabled={deleting}
+              aria-label="Delete job"
+              className="flex h-8 w-8 items-center justify-center rounded-md border border-border text-muted-foreground transition-colors hover:border-danger hover:bg-danger/10 hover:text-danger disabled:opacity-60"
+            >
+              <Trash2 size={14} />
+            </button>
           </div>
         </div>
 

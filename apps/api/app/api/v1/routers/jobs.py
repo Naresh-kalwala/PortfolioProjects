@@ -162,6 +162,29 @@ async def update_job(
     return user_job
 
 
+@router.delete("/{user_job_id}", status_code=204)
+async def delete_job(
+    user_job_id: UUID,
+    profile: UserProfile = Depends(get_current_profile),
+    db: AsyncSession = Depends(get_db),
+):
+    """Removes this job from the user's dashboard (e.g. one whose AI
+    analysis failed and is stuck, or one they're no longer interested in).
+    Only deletes this user's relationship to the posting — the shared `Job`
+    row stays, so other users matched against it are unaffected, and
+    re-adding the same posting later is still deduped correctly.
+    """
+    result = await db.execute(
+        select(UserJob).where(UserJob.id == user_job_id, UserJob.user_id == profile.id)
+    )
+    user_job = result.scalar_one_or_none()
+    if user_job is None:
+        raise HTTPException(status_code=404, detail="Job not found")
+
+    await db.delete(user_job)
+    await db.commit()
+
+
 @router.post("/{user_job_id}/resume-application", response_model=UserJobRead)
 async def resume_application(
     user_job_id: UUID,

@@ -37,5 +37,9 @@ export function useApiMutations() {
       const token = await getToken();
       return createApiClient(token).put<T>(path, body);
     },
+    remove: async <T,>(path: string) => {
+      const token = await getToken();
+      return createApiClient(token).delete<T>(path);
+    },
   };
 }

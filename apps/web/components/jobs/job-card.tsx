@@ -1,6 +1,6 @@
 "use client";
 
-import { Heart, MapPin, Star } from "lucide-react";
+import { Heart, MapPin, Star, Trash2 } from "lucide-react";
 import Link from "next/link";
 
 import { MatchBadge } from "@/components/jobs/match-badge";
@@ -18,11 +18,18 @@ const WORKPLACE_LABEL: Record<string, string> = {
 
 export function JobCard({ userJob }: { userJob: UserJob }) {
   const { job } = userJob;
-  const { patch } = useApiMutations();
+  const { patch, remove } = useApiMutations();
   const { mutate } = useSWRConfig();
 
   async function toggle(field: "is_saved" | "is_favorite") {
     await patch(`/jobs/${userJob.id}`, { [field]: !userJob[field] });
+    mutate((key: string) => typeof key === "string" && key.startsWith("/jobs"));
+  }
+
+  async function handleDelete(e: React.MouseEvent) {
+    e.preventDefault();
+    if (!window.confirm(`Remove "${job.title}" from your dashboard? This can't be undone.`)) return;
+    await remove(`/jobs/${userJob.id}`);
     mutate((key: string) => typeof key === "string" && key.startsWith("/jobs"));
   }
 
@@ -53,6 +60,13 @@ export function JobCard({ userJob }: { userJob: UserJob }) {
             )}
           >
             <Heart size={13} fill={userJob.is_saved ? "currentColor" : "none"} />
+          </button>
+          <button
+            onClick={handleDelete}
+            aria-label="Delete job"
+            className="flex h-7 w-7 items-center justify-center rounded-md border border-border text-muted-foreground transition-colors hover:border-danger hover:bg-danger/10 hover:text-danger"
+          >
+            <Trash2 size={13} />
           </button>
         </div>
       </div>
